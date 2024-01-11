@@ -1,86 +1,42 @@
 // create a web server
-const express = require('express');
-const bodyParser = require('body-parser');
-const comments = require('./comments');
+
+// import express
+import express from 'express';
 const app = express();
-app.use(bodyParser.json());
+
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import passportLocal from 'passport-local';
+import expressSession from 'express-session';
+
+const User = require('./models/user');
+
+mongoose.connect('mongodb://localhost:27017/comments', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+app.set('view engine', 'ejs');
+
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
-app.get('/api/comments', (_, res) => {
-    console.log('GET /api/comments');
-    res.json(comments.getAll());
+
+app.use(cookieParser());
+
+app.use(expressSession);
+
+app.use(passport.initialize());
+
+app.use(passport.session());
+
+passport.use(new passportLocal(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+
+passport.deserializeUser(User.deserializeUser());
+
+// create the home route
+app.get('/', () => {
+    // find
 });
-app.post('/api/comments', (req, res) => {
-    console.log('POST /api/comments');
-    const comment = req.body;
-    const name = comment.name;
-    const content = comment.content;
-    if (!name || !content) {
-        res.status(400).end();
-        return;
-    }
-    const id = comments.add(name, content);
-    res.json(comments.get(id));
-});
-app.listen(3000, () => {
-    console.log('Server is listening on port 3000');
-});
-// Path: comments.js
-// create a module
-const comments = {};
-let nextId = 1;
-comments._comments = [
-    {
-        id: 0,
-        name: 'Bob',
-        content: 'Hello world',
-        createdAt: new Date(),
-    },
-];
-comments.add = function(name, content) {
-    const comment = {
-        id: nextId++,
-        name,
-        content,
-        createdAt: new Date(),
-    };
-    comments._comments.unshift(comment);
-    return comment.id;
-};
-comments.getAll = function() {
-    return comments._comments;
-};
-comments.get = function(id) {
-    const index = comments._comments.findIndex(comment => comment.id === id);
-    if (index === -1) {
-        return null;
-    }
-    return comments._comments[index];
-};
-module.exports = comments;
-// Path: index.html
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Comments</title>
-        <link rel="stylesheet" href="style.css" />
-    </head>
-    <body>
-        <div id="app"></div>
-        <script src="bundle.js"></script>
-    </body>
-</html>
-// Path: index.js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-ReactDOM.render(<App />, document.getElementById('app'));
-// Path: App.js
-import React from 'react';
-import CommentBox from './CommentBox'; // Uncommented to fix the unused variable warning
-// import CommentBox from './CommentBox'; // Commented out to fix the unused variable warning
-const App = () => {
-    return (
-        <div className="container"></div>
-    );
-};
