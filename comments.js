@@ -1,55 +1,44 @@
 // create a web server
-// 1. load the express module
-var express = require("express");
-// 2. create an instance of express
-var app = express();
-// 3. load the body-parser module
-var bodyParser = require("body-parser");
-// 4. load the express-session module
-var session = require("express-session");
-// 5. load the mongodb module
-var mongoClient = require("mongodb").MongoClient;
-// 6. load the multer module
-var multer = require("multer");
-// 7. load the path module
-var path = require("path");
-// 8. load the fs module
-var fs = require("fs");
-// 9. load the cookie-parser module
-var cookieParser = require("cookie-parser");
-// 10. load the bcrypt module
-var bcrypt = require("bcrypt");
-// 11. load the nodemailer module
-var nodemailer = require("nodemailer");
-// 12. load the socket.io module
-var http = require("http").Server(app);
-var io = require("socket.io")(http);
+// create a route, handler function
+// listen for incoming requests
+// start the server and listen on a port
 
-// 13. set the view engine
-app.set("view engine", "ejs");
-// 14. set the views folder
-app.set("views", path.join(__dirname, "views"));
+// we use express to create a web server
+// const express = require('express');
+// const app = express();
+// const port = 3000;
+// app.get('/', (req, res) => res.send('Hello World!'));
+// app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
-// 15. set the body-parser middleware
-app.use(bodyParser.urlencoded({ extended: true }));
+// we use express to create a web server
+const express = require('express');
+const app = express();
+const port = 3000;
+const comments = require('./data/comments');
 
-// 16. set the express-session middleware
-app.use(
-  session({
-    secret: "secret",
-    resave: true,
-    saveUninitialized: true
-  })
+// express.static is a built in middleware function to serve static files.
+// We are telling express server public folder is the place to look for the static files
+app.use(express.static('public'));
+
+// set the view engine to ejs
+app.set('view engine', 'ejs');
+
+// route for home page
+app.get('/', (req, res) => {
+  // render `home.ejs` with the list of posts
+  res.render('home', { comments: comments });
+});
+
+// route for post page
+app.get('/comments/:id', (req, res) => {
+  // find the post in the `posts` array
+  const comment = comments.filter((comment) => {
+    return comment.id == req.params.id;
+  })[0];
+
+  // render the `post.ejs` template with the post content
+  res.render('comment', { comment: comment });
+}
 );
 
-// 17. set the multer middleware
-app.use(multer({ dest: "uploads/" }).any());
-
-// 18. set the static middleware
-app.use(express.static(path.join(__dirname, "public")));
-
-// 19. set the cookie-parser middleware
-app.use(cookieParser());
-
-// 20. set the bcrypt middleware
-const saltRounds = 10;
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
