@@ -6,7 +6,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.get('/api/comments', (req, res) => {
+app.get('/api/comments', (_, res) => {
     console.log('GET /api/comments');
     res.json(comments.getAll());
 });
@@ -77,6 +77,7 @@ import App from './App';
 ReactDOM.render(<App />, document.getElementById('app'));
 // Path: App.js
 import React from 'react';
+import CommentBox from './CommentBox'; // Uncommented to fix the unused variable warning
 // import CommentBox from './CommentBox'; // Commented out to fix the unused variable warning
 const App = () => {
     return (
